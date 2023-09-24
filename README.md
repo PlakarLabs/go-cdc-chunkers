@@ -3,7 +3,7 @@
 go-cdc-chunkers is a Golang package that provides a unified access to multiple CDC chunking algorithms.
 
 ```go
-    chunker, err := fastcdc.NewChunker(rd, nil)
+    chunker, err := fastcdc.NewChunker("fastcdc", rd)   // or ultracdc
     if err != nil {
         log.Fatal(err)
     }
