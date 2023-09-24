@@ -26,7 +26,6 @@ go-cdc-chunkers is a Golang package that provides a unified access to multiple C
     }
 ```
 
-
 ## Reference
 
   - [Xia, Wen, et al. "Fastcdc: a fast and efficient content-defined chunking approach for data deduplication." 2016 USENIX Annual Technical Conference](https://www.usenix.org/system/files/conference/atc16/atc16-paper-xia.pdf)
