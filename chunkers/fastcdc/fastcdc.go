@@ -31,37 +31,6 @@ var errNormalSize = errors.New("NormalSize is required and must be 64B <= Normal
 var errMinSize = errors.New("MinSize is required and must be 64B <= MinSize <= 1GB && MinSize < NormalSize")
 var errMaxSize = errors.New("MaxSize is required and must be 64B <= MaxSize <= 1GB && MaxSize > NormalSize")
 
-type ChunkerOpts struct {
-	minSize    uint32
-	maxSize    uint32
-	normalSize uint32
-}
-
-func (o *ChunkerOpts) MinSize() uint32 {
-	return o.minSize
-}
-
-func (o *ChunkerOpts) MaxSize() uint32 {
-	return o.maxSize
-}
-
-func (o *ChunkerOpts) NormalSize() uint32 {
-	return o.minSize + 8*1024
-}
-
-func (o *ChunkerOpts) Validate() error {
-	if o.normalSize == 0 || o.normalSize < 64 || o.normalSize > 1024*1024*1024 {
-		return errNormalSize
-	}
-	if o.minSize < 64 || o.minSize > 1024*1024*1024 || o.minSize >= o.normalSize {
-		return errMinSize
-	}
-	if o.maxSize < 64 || o.maxSize > 1024*1024*1024 || o.maxSize <= o.normalSize {
-		return errMaxSize
-	}
-	return nil
-}
-
 type FastCDC struct {
 }
 
@@ -69,18 +38,31 @@ func newFastCDC() chunkers.ChunkerImplementation {
 	return &FastCDC{}
 }
 
-func (c *FastCDC) DefaultOptions() chunkers.ChunkerOpts {
-	return &ChunkerOpts{
-		minSize:    2 * 1024,
-		maxSize:    64 * 1024,
-		normalSize: 8 * 1024,
+func (c *FastCDC) DefaultOptions() *chunkers.ChunkerOpts {
+	return &chunkers.ChunkerOpts{
+		MinSize:    2 * 1024,
+		MaxSize:    64 * 1024,
+		NormalSize: 8 * 1024,
 	}
 }
 
-func (c *FastCDC) Algorithm(options chunkers.ChunkerOpts, data []byte, n uint32) uint32 {
-	MinSize := options.MinSize()
-	MaxSize := options.MaxSize()
-	NormalSize := options.NormalSize()
+func (c *FastCDC) Validate(options *chunkers.ChunkerOpts) error {
+	if options.NormalSize == 0 || options.NormalSize < 64 || options.NormalSize > 1024*1024*1024 {
+		return errNormalSize
+	}
+	if options.MinSize < 64 || options.MinSize > 1024*1024*1024 || options.MinSize >= options.NormalSize {
+		return errMinSize
+	}
+	if options.MaxSize < 64 || options.MaxSize > 1024*1024*1024 || options.MaxSize <= options.NormalSize {
+		return errMaxSize
+	}
+	return nil
+}
+
+func (c *FastCDC) Algorithm(options *chunkers.ChunkerOpts, data []byte, n int) int {
+	MinSize := options.MinSize
+	MaxSize := options.MaxSize
+	NormalSize := options.NormalSize
 
 	const (
 		MaskS = uint64(0x0003590703530000)

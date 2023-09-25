@@ -31,33 +31,6 @@ func init() {
 var errMinSize = errors.New("MinSize is required and must be 64B <= MinSize <= 1GB")
 var errMaxSize = errors.New("MaxSize is required and must be 64B <= MaxSize <= 1GB")
 
-type ChunkerOpts struct {
-	minSize uint32
-	maxSize uint32
-}
-
-func (o *ChunkerOpts) MinSize() uint32 {
-	return o.minSize
-}
-
-func (o *ChunkerOpts) MaxSize() uint32 {
-	return o.maxSize
-}
-
-func (o *ChunkerOpts) NormalSize() uint32 {
-	return o.minSize + 8*1024
-}
-
-func (o *ChunkerOpts) Validate() error {
-	if o.minSize < 64 || o.minSize > 1024*1024*1024 {
-		return errMinSize
-	}
-	if o.maxSize < 64 || o.maxSize > 1024*1024*1024 {
-		return errMaxSize
-	}
-	return nil
-}
-
 type UltraCDC struct {
 }
 
@@ -65,14 +38,24 @@ func newUltraCDC() chunkers.ChunkerImplementation {
 	return &UltraCDC{}
 }
 
-func (c *UltraCDC) DefaultOptions() chunkers.ChunkerOpts {
-	return &ChunkerOpts{
-		minSize: 2 * 1024,
-		maxSize: 64 * 1024,
+func (c *UltraCDC) DefaultOptions() *chunkers.ChunkerOpts {
+	return &chunkers.ChunkerOpts{
+		MinSize: 2 * 1024,
+		MaxSize: 64 * 1024,
 	}
 }
 
-func (c *UltraCDC) Algorithm(options chunkers.ChunkerOpts, data []byte, n uint32) uint32 {
+func (c *UltraCDC) Validate(options *chunkers.ChunkerOpts) error {
+	if options.MinSize < 64 || options.MinSize > 1024*1024*1024 {
+		return errMinSize
+	}
+	if options.MaxSize < 64 || options.MaxSize > 1024*1024*1024 {
+		return errMaxSize
+	}
+	return nil
+}
+
+func (c *UltraCDC) Algorithm(options *chunkers.ChunkerOpts, data []byte, n int) int {
 	src := (*uint64)(unsafe.Pointer(&data[0]))
 
 	const (
@@ -81,9 +64,9 @@ func (c *UltraCDC) Algorithm(options chunkers.ChunkerOpts, data []byte, n uint32
 		MaskL   uint64 = 0x2C
 		LEST    uint32 = 64
 	)
-	MinSize := options.MinSize()
-	MaxSize := options.MaxSize()
-	NormalSize := options.NormalSize()
+	MinSize := options.MinSize
+	MaxSize := options.MaxSize
+	NormalSize := options.NormalSize
 
 	i := MinSize
 	cnt := uint32(0)

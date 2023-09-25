@@ -22,34 +22,38 @@ import (
 	"io"
 )
 
-type ChunkerOpts interface {
-	MinSize() uint32
-	MaxSize() uint32
-	NormalSize() uint32
-	Validate() error
+type ChunkerOpts struct {
+	MinSize    int
+	MaxSize    int
+	NormalSize int
 }
 
 type ChunkerImplementation interface {
-	DefaultOptions() ChunkerOpts
-	Algorithm(ChunkerOpts, []byte, uint32) uint32
+	DefaultOptions() *ChunkerOpts
+	Validate(*ChunkerOpts) error
+	Algorithm(*ChunkerOpts, []byte, int) int
 }
 
 type Chunker struct {
 	rd             *bufio.Reader
-	options        ChunkerOpts
+	options        *ChunkerOpts
 	implementation ChunkerImplementation
+
+	maxSize    int
+	minSize    int
+	normalSize int
 }
 
-func (c *Chunker) MinSize() uint32 {
-	return c.options.MinSize()
+func (c *Chunker) MinSize() int {
+	return c.options.MinSize
 }
 
-func (c *Chunker) MaxSize() uint32 {
-	return c.options.MaxSize()
+func (c *Chunker) MaxSize() int {
+	return c.options.MaxSize
 }
 
-func (c *Chunker) NormalSize() uint32 {
-	return c.options.NormalSize()
+func (c *Chunker) NormalSize() int {
+	return c.options.NormalSize
 }
 
 var chunkers map[string]func() ChunkerImplementation = make(map[string]func() ChunkerImplementation)
@@ -73,16 +77,17 @@ func NewChunker(algorithm string, reader io.Reader) (*Chunker, error) {
 	chunker := &Chunker{}
 	chunker.implementation = implementationAllocator()
 	chunker.options = chunker.implementation.DefaultOptions()
-	err := chunker.options.Validate()
-	if err != nil {
-		return nil, err
-	}
-	chunker.rd = bufio.NewReaderSize(reader, int(chunker.options.MaxSize())*2)
+	chunker.rd = bufio.NewReaderSize(reader, int(chunker.options.MaxSize)*2)
+
+	chunker.minSize = chunker.options.MinSize
+	chunker.maxSize = chunker.options.MaxSize
+	chunker.normalSize = chunker.options.NormalSize
+
 	return chunker, nil
 }
 
 func (chunker *Chunker) Next() ([]byte, error) {
-	data, err := chunker.rd.Peek(int(chunker.options.MaxSize()))
+	data, err := chunker.rd.Peek(chunker.maxSize)
 	if err != nil && err != io.EOF && err != bufio.ErrBufferFull {
 		return nil, err
 	}
@@ -92,7 +97,7 @@ func (chunker *Chunker) Next() ([]byte, error) {
 		return nil, io.EOF
 	}
 
-	cutpoint := chunker.implementation.Algorithm(chunker.options, data[:n], uint32(n))
+	cutpoint := chunker.implementation.Algorithm(chunker.options, data[:n], n)
 	if _, err = chunker.rd.Discard(int(cutpoint)); err != nil {
 		return nil, err
 	}
