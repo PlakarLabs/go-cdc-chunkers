@@ -77,7 +77,7 @@ func NewChunker(algorithm string, reader io.Reader) (*Chunker, error) {
 	if err != nil {
 		return nil, err
 	}
-	chunker.rd = bufio.NewReaderSize(reader, int(chunker.implementation.DefaultOptions().MaxSize())*2)
+	chunker.rd = bufio.NewReaderSize(reader, int(chunker.options.MaxSize())*2)
 	return chunker, nil
 }
 
