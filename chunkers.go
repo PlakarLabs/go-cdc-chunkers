@@ -17,7 +17,6 @@ package chunkers
  */
 
 import (
-	"bufio"
 	"errors"
 	"io"
 )
@@ -35,7 +34,11 @@ type ChunkerImplementation interface {
 }
 
 type Chunker struct {
-	rd             *bufio.Reader
+	rd        io.Reader
+	buffer    []byte
+	bufferEnd int
+	cutpoint  int
+
 	options        *ChunkerOpts
 	implementation ChunkerImplementation
 
@@ -81,7 +84,9 @@ func NewChunker(algorithm string, reader io.Reader, opts *ChunkerOpts) (*Chunker
 	chunker := &Chunker{}
 	chunker.implementation = implementationAllocator()
 	chunker.options = opts
-	chunker.rd = bufio.NewReaderSize(reader, int(chunker.options.MaxSize)*2)
+
+	chunker.rd = reader
+	chunker.buffer = make([]byte, chunker.options.MaxSize)
 
 	chunker.minSize = chunker.options.MinSize
 	chunker.maxSize = chunker.options.MaxSize
@@ -91,22 +96,24 @@ func NewChunker(algorithm string, reader io.Reader, opts *ChunkerOpts) (*Chunker
 }
 
 func (chunker *Chunker) Next() ([]byte, error) {
-	data, err := chunker.rd.Peek(chunker.maxSize)
-	if err != nil && err != io.EOF && err != bufio.ErrBufferFull {
-		return nil, err
+	if chunker.cutpoint != 0 {
+		copy(chunker.buffer, chunker.buffer[chunker.cutpoint:chunker.bufferEnd])
+		chunker.bufferEnd -= chunker.cutpoint
+		chunker.cutpoint = 0
 	}
 
-	n := len(data)
-	if n == 0 {
+	n, err := chunker.rd.Read(chunker.buffer[chunker.bufferEnd:])
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+	chunker.bufferEnd += n
+	if chunker.bufferEnd == 0 {
 		return nil, io.EOF
 	}
 
-	cutpoint := chunker.implementation.Algorithm(chunker.options, data[:n], n)
-	if _, err = chunker.rd.Discard(int(cutpoint)); err != nil {
-		return nil, err
-	}
-
-	return data[:cutpoint], nil
+	cutpoint := chunker.implementation.Algorithm(chunker.options, chunker.buffer[:chunker.bufferEnd], chunker.bufferEnd)
+	chunker.cutpoint = cutpoint
+	return chunker.buffer[:cutpoint], nil
 }
 
 func (chunker *Chunker) Copy(dst io.Writer) (int64, error) {
