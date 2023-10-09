@@ -1,0 +1,10 @@
+codeberg.org/mhofmann/fastcdc v1.0.0 h1:VQy/CPLq74s449C60NRckXaGrjRfFBGMwe27C6ScVJM=
+codeberg.org/mhofmann/fastcdc v1.0.0/go.mod h1:jFcaHSHiytKN5z32a1toKGQO5MJ3ziDuUgyjkzdqEBQ=
+github.com/PlakarLabs/go-ringbuffer v0.0.4 h1:qVXI8UGB+GIgRMYLwEBSEDYE49YCZswQog+Jb0jhBBM=
+github.com/PlakarLabs/go-ringbuffer v0.0.4/go.mod h1:e7h+PCwFXbPXRIMxv4oivjhJO1QWwvc3bBjeUThq+yY=
+github.com/askeladdk/fastcdc v0.0.2 h1:7G55PritZUbjQhWgxHqKOgAdJxgzj26ksMvdzXKUrm8=
+github.com/askeladdk/fastcdc v0.0.2/go.mod h1:ZhMhz8p8u5Hz5yP2NVNXPX8V2B9c840z6fW3VsIDQLw=
+github.com/jotfs/fastcdc-go v0.2.0 h1:WHYIGk3k9NumGWfp4YMsemEcx/s4JKpGAa6tpCpHJOo=
+github.com/jotfs/fastcdc-go v0.2.0/go.mod h1:PGFBIloiASFbiKnkCd/hmHXxngxYDYtisyurJ/zyDNM=
+github.com/tigerwill90/fastcdc v1.2.2 h1:tigEC8ONgsN9MreH27XU345jnuH8cF/Iw1EPkVr8JPk=
+github.com/tigerwill90/fastcdc v1.2.2/go.mod h1:gn9sPRoM0lazNdSkncX+QvvD/P7/wptXVLkVUEL/5Ck=
