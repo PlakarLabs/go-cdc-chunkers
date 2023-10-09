@@ -17,9 +17,10 @@ package chunkers
  */
 
 import (
-	"bufio"
 	"errors"
 	"io"
+
+	"github.com/PlakarLabs/go-ringbuffer"
 )
 
 type ChunkerOpts struct {
@@ -35,7 +36,8 @@ type ChunkerImplementation interface {
 }
 
 type Chunker struct {
-	rd             *bufio.Reader
+	rd *ringbuffer.RingBuffer
+
 	options        *ChunkerOpts
 	implementation ChunkerImplementation
 
@@ -81,7 +83,7 @@ func NewChunker(algorithm string, reader io.Reader, opts *ChunkerOpts) (*Chunker
 	chunker := &Chunker{}
 	chunker.implementation = implementationAllocator()
 	chunker.options = opts
-	chunker.rd = bufio.NewReaderSize(reader, int(chunker.options.MaxSize)*2)
+	chunker.rd = ringbuffer.NewReaderSize(reader, chunker.options.MaxSize)
 
 	chunker.minSize = chunker.options.MinSize
 	chunker.maxSize = chunker.options.MaxSize
@@ -92,7 +94,7 @@ func NewChunker(algorithm string, reader io.Reader, opts *ChunkerOpts) (*Chunker
 
 func (chunker *Chunker) Next() ([]byte, error) {
 	data, err := chunker.rd.Peek(chunker.maxSize)
-	if err != nil && err != io.EOF && err != bufio.ErrBufferFull {
+	if err != nil && err != io.EOF {
 		return nil, err
 	}
 
