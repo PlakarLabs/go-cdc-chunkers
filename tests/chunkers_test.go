@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"testing"
 
+	mhofmann "codeberg.org/mhofmann/fastcdc"
 	chunkers "github.com/PlakarLabs/go-cdc-chunkers"
 	_ "github.com/PlakarLabs/go-cdc-chunkers/chunkers/fastcdc"
 	_ "github.com/PlakarLabs/go-cdc-chunkers/chunkers/ultracdc"
@@ -40,7 +41,7 @@ func Test_FastCDC(t *testing.T) {
 
 	hasher.Reset()
 
-	chunker, err := chunkers.NewChunker("fastcdc", r)
+	chunker, err := chunkers.NewChunker("fastcdc", r, nil)
 	if err != nil {
 		t.Fatalf(`chunker error: %s`, err)
 	}
@@ -76,7 +77,7 @@ func Test_UltraCDC(t *testing.T) {
 
 	hasher.Reset()
 
-	chunker, err := chunkers.NewChunker("ultracdc", r)
+	chunker, err := chunkers.NewChunker("ultracdc", r, nil)
 	if err != nil {
 		t.Fatalf(`chunker error: %s`, err)
 	}
@@ -169,11 +170,40 @@ func Benchmark_Tigerwill90_FastCDC_Split(b *testing.B) {
 	b.ReportMetric(float64(nchunks)/float64(b.N), "chunks")
 }
 
+func Benchmark_Mhofmann_FastCDC_Next(b *testing.B) {
+	r := bytes.NewReader(rb)
+	b.SetBytes(int64(r.Len()))
+	b.ResetTimer()
+	nchunks := 0
+	for i := 0; i < b.N; i++ {
+
+		chunker, err := mhofmann.NewChunker(r, minSize, avgSize, maxSize)
+		if err != nil {
+			b.Fatalf(`chunker error: %s`, err)
+		}
+
+		for hasChunk := chunker.Next(); hasChunk; hasChunk = chunker.Next() {
+			// to be fair with other benchmarks, return and discard value
+			// so that the implementation has to pass a buffer to caller.
+			_ = chunker.Chunk()
+			nchunks++
+		}
+		r.Reset(rb)
+	}
+	b.ReportMetric(float64(nchunks)/float64(b.N), "chunks")
+}
+
 func Benchmark_PlakarLabs_FastCDC_Copy(b *testing.B) {
 	r := bytes.NewReader(rb)
 	b.SetBytes(int64(r.Len()))
 	b.ResetTimer()
 	nchunks := 0
+
+	opts := &chunkers.ChunkerOpts{
+		MinSize:    minSize,
+		NormalSize: avgSize,
+		MaxSize:    maxSize,
+	}
 
 	w := writerFunc(func(p []byte) (int, error) {
 		nchunks++
@@ -181,7 +211,7 @@ func Benchmark_PlakarLabs_FastCDC_Copy(b *testing.B) {
 	})
 
 	for i := 0; i < b.N; i++ {
-		chunker, err := chunkers.NewChunker("fastcdc", r)
+		chunker, err := chunkers.NewChunker("fastcdc", r, opts)
 		if err != nil {
 			b.Fatalf(`chunker error: %s`, err)
 		}
@@ -197,13 +227,19 @@ func Benchmark_PlakarLabs_FastCDC_Split(b *testing.B) {
 	b.ResetTimer()
 	nchunks := 0
 
+	opts := &chunkers.ChunkerOpts{
+		MinSize:    minSize,
+		NormalSize: avgSize,
+		MaxSize:    maxSize,
+	}
+
 	w := func(offset, length uint, chunk []byte) error {
 		nchunks++
 		return nil
 	}
 
 	for i := 0; i < b.N; i++ {
-		chunker, err := chunkers.NewChunker("fastcdc", r)
+		chunker, err := chunkers.NewChunker("fastcdc", r, opts)
 		if err != nil {
 			b.Fatalf(`chunker error: %s`, err)
 		}
@@ -221,8 +257,15 @@ func Benchmark_PlakarLabs_FastCDC_Next(b *testing.B) {
 	b.SetBytes(int64(r.Len()))
 	b.ResetTimer()
 	nchunks := 0
+
+	opts := &chunkers.ChunkerOpts{
+		MinSize:    minSize,
+		NormalSize: avgSize,
+		MaxSize:    maxSize,
+	}
+
 	for i := 0; i < b.N; i++ {
-		chunker, err := chunkers.NewChunker("fastcdc", r)
+		chunker, err := chunkers.NewChunker("fastcdc", r, opts)
 		if err != nil {
 			b.Fatalf(`chunker error: %s`, err)
 		}
@@ -241,36 +284,23 @@ func Benchmark_PlakarLabs_UltraCDC_Copy(b *testing.B) {
 	b.ResetTimer()
 	nchunks := 0
 
+	opts := &chunkers.ChunkerOpts{
+		MinSize:    minSize,
+		NormalSize: avgSize,
+		MaxSize:    maxSize,
+	}
+
 	w := writerFunc(func(p []byte) (int, error) {
 		nchunks++
 		return len(p), nil
 	})
 
 	for i := 0; i < b.N; i++ {
-		chunker, err := chunkers.NewChunker("ultracdc", r)
+		chunker, err := chunkers.NewChunker("ultracdc", r, opts)
 		if err != nil {
 			b.Fatalf(`chunker error: %s`, err)
 		}
 		chunker.Copy(w)
-		r.Reset(rb)
-	}
-	b.ReportMetric(float64(nchunks)/float64(b.N), "chunks")
-}
-
-func Benchmark_PlakarLabs_UltraCDC_Next(b *testing.B) {
-	r := bytes.NewReader(rb)
-	b.SetBytes(int64(r.Len()))
-	b.ResetTimer()
-	nchunks := 0
-	for i := 0; i < b.N; i++ {
-		chunker, err := chunkers.NewChunker("ultracdc", r)
-		if err != nil {
-			b.Fatalf(`chunker error: %s`, err)
-		}
-		for err := error(nil); err == nil; {
-			_, err = chunker.Next()
-			nchunks++
-		}
 		r.Reset(rb)
 	}
 	b.ReportMetric(float64(nchunks)/float64(b.N), "chunks")
@@ -282,19 +312,51 @@ func Benchmark_PlakarLabs_UltraCDC_Split(b *testing.B) {
 	b.ResetTimer()
 	nchunks := 0
 
+	opts := &chunkers.ChunkerOpts{
+		MinSize:    minSize,
+		NormalSize: avgSize,
+		MaxSize:    maxSize,
+	}
+
 	w := func(offset, length uint, chunk []byte) error {
 		nchunks++
 		return nil
 	}
 
 	for i := 0; i < b.N; i++ {
-		chunker, err := chunkers.NewChunker("ultracdc", r)
+		chunker, err := chunkers.NewChunker("ultracdc", r, opts)
 		if err != nil {
 			b.Fatalf(`chunker error: %s`, err)
 		}
 		err = chunker.Split(w)
 		if err != nil && err != io.EOF {
 			b.Fatalf(`chunker error: %s`, err)
+		}
+		r.Reset(rb)
+	}
+	b.ReportMetric(float64(nchunks)/float64(b.N), "chunks")
+}
+
+func Benchmark_PlakarLabs_UltraCDC_Next(b *testing.B) {
+	r := bytes.NewReader(rb)
+	b.SetBytes(int64(r.Len()))
+
+	opts := &chunkers.ChunkerOpts{
+		MinSize:    minSize,
+		NormalSize: avgSize,
+		MaxSize:    maxSize,
+	}
+
+	b.ResetTimer()
+	nchunks := 0
+	for i := 0; i < b.N; i++ {
+		chunker, err := chunkers.NewChunker("ultracdc", r, opts)
+		if err != nil {
+			b.Fatalf(`chunker error: %s`, err)
+		}
+		for err := error(nil); err == nil; {
+			_, err = chunker.Next()
+			nchunks++
 		}
 		r.Reset(rb)
 	}

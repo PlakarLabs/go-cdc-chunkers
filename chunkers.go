@@ -66,7 +66,7 @@ func Register(name string, implementation func() ChunkerImplementation) error {
 	return nil
 }
 
-func NewChunker(algorithm string, reader io.Reader) (*Chunker, error) {
+func NewChunker(algorithm string, reader io.Reader, opts *ChunkerOpts) (*Chunker, error) {
 	var implementationAllocator func() ChunkerImplementation
 
 	implementationAllocator, exists := chunkers[algorithm]
@@ -74,9 +74,13 @@ func NewChunker(algorithm string, reader io.Reader) (*Chunker, error) {
 		return nil, errors.New("unknown algorithm")
 	}
 
+	if opts == nil {
+		opts = implementationAllocator().DefaultOptions()
+	}
+
 	chunker := &Chunker{}
 	chunker.implementation = implementationAllocator()
-	chunker.options = chunker.implementation.DefaultOptions()
+	chunker.options = opts
 	chunker.rd = bufio.NewReaderSize(reader, int(chunker.options.MaxSize)*2)
 
 	chunker.minSize = chunker.options.MinSize

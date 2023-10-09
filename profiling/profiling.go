@@ -34,7 +34,7 @@ func main() {
 	defer pprof.StopCPUProfile()
 
 	r := bytes.NewReader(rb)
-	chunker, err := chunkers.NewChunker(method, r)
+	chunker, err := chunkers.NewChunker(method, r, nil)
 	if err != nil {
 		log.Fatalf(`chunker error: %s`, err)
 	}
