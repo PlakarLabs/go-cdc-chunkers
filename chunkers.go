@@ -104,3 +104,50 @@ func (chunker *Chunker) Next() ([]byte, error) {
 
 	return data[:cutpoint], nil
 }
+
+func (chunker *Chunker) Copy(dst io.Writer) (int64, error) {
+	nbytes := int64(0)
+	for {
+		data, err := chunker.rd.Peek(chunker.maxSize)
+		if err != nil && err != io.EOF && err != bufio.ErrBufferFull {
+			return nbytes, err
+		}
+
+		n := len(data)
+		if n == 0 {
+			return nbytes, io.EOF
+		}
+
+		cutpoint := chunker.implementation.Algorithm(chunker.options, data[:n], n)
+		if _, err = chunker.rd.Discard(int(cutpoint)); err != nil {
+			return nbytes, err
+		}
+		if _, err = dst.Write(data[:cutpoint]); err != nil {
+			return nbytes, err
+		}
+	}
+}
+
+func (chunker *Chunker) Split(callback func(offset, length uint, chunk []byte) error) error {
+	offset := uint(0)
+	for {
+		data, err := chunker.rd.Peek(chunker.maxSize)
+		if err != nil && err != io.EOF && err != bufio.ErrBufferFull {
+			return err
+		}
+
+		n := len(data)
+		if n == 0 {
+			return io.EOF
+		}
+
+		cutpoint := chunker.implementation.Algorithm(chunker.options, data[:n], n)
+		if _, err = chunker.rd.Discard(int(cutpoint)); err != nil {
+			return err
+		}
+
+		if err = callback(offset, uint(cutpoint), data[:cutpoint]); err != nil {
+			return err
+		}
+	}
+}
