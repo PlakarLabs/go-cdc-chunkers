@@ -36,7 +36,10 @@ type ChunkerImplementation interface {
 }
 
 type Chunker struct {
-	rd *ringbuffer.RingBuffer
+	rd        *ringbuffer.RingBuffer
+	buffer    []byte
+	bufferEnd int
+	cutpoint  int
 
 	options        *ChunkerOpts
 	implementation ChunkerImplementation
@@ -84,6 +87,7 @@ func NewChunker(algorithm string, reader io.Reader, opts *ChunkerOpts) (*Chunker
 	chunker.implementation = implementationAllocator()
 	chunker.options = opts
 	chunker.rd = ringbuffer.NewReaderSize(reader, chunker.options.MaxSize)
+	chunker.buffer = make([]byte, chunker.options.MaxSize)
 
 	chunker.minSize = chunker.options.MinSize
 	chunker.maxSize = chunker.options.MaxSize
@@ -93,22 +97,23 @@ func NewChunker(algorithm string, reader io.Reader, opts *ChunkerOpts) (*Chunker
 }
 
 func (chunker *Chunker) Next() ([]byte, error) {
-	data, err := chunker.rd.Peek(chunker.maxSize)
+	if chunker.cutpoint != 0 {
+		copy(chunker.buffer, chunker.buffer[chunker.cutpoint:chunker.bufferEnd])
+		chunker.bufferEnd -= chunker.cutpoint
+		chunker.cutpoint = 0
+	}
+
+	n, err := chunker.rd.Read(chunker.buffer[chunker.bufferEnd:])
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
-
-	n := len(data)
-	if n == 0 {
+	chunker.bufferEnd += n
+	if chunker.bufferEnd == 0 {
 		return nil, io.EOF
 	}
-
-	cutpoint := chunker.implementation.Algorithm(chunker.options, data[:n], n)
-	if _, err = chunker.rd.Discard(int(cutpoint)); err != nil {
-		return nil, err
-	}
-
-	return data[:cutpoint], nil
+	cutpoint := chunker.implementation.Algorithm(chunker.options, chunker.buffer[:chunker.bufferEnd], chunker.bufferEnd)
+	chunker.cutpoint = cutpoint
+	return chunker.buffer[:cutpoint], nil
 }
 
 func (chunker *Chunker) Copy(dst io.Writer) (int64, error) {

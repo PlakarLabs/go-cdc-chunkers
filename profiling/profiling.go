@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"io"
 	"log"
@@ -33,7 +32,8 @@ func main() {
 	pprof.StartCPUProfile(f)
 	defer pprof.StopCPUProfile()
 
-	r := bytes.NewReader(rb)
+	//r := bytes.NewReader(rb)
+	r, _ := os.Open("/tmp/passwd.long")
 	chunker, err := chunkers.NewChunker(method, r, nil)
 	if err != nil {
 		log.Fatalf(`chunker error: %s`, err)
