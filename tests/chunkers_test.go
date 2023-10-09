@@ -14,14 +14,20 @@ import (
 	_ "github.com/PlakarLabs/go-cdc-chunkers/chunkers/ultracdc"
 	askeladdk "github.com/askeladdk/fastcdc"
 	jotfs "github.com/jotfs/fastcdc-go"
+	restic "github.com/restic/chunker"
 	tigerwill90 "github.com/tigerwill90/fastcdc"
 )
 
 const (
-	minSize = 2 << 10
-	maxSize = 64 << 10
-	avgSize = 8 << 10
-	datalen = 128 << 20
+	//minSize = 128 << 10
+	//maxSize = 512 << 10
+	//avgSize = 256 << 10
+
+	minSize = 256 << 10
+	maxSize = 1024 << 10
+	avgSize = 512 << 10
+
+	datalen = 1024 << 20
 )
 
 type writerFunc func([]byte) (int, error)
@@ -82,9 +88,14 @@ func Test_FastCDC_Copy(t *testing.T) {
 		t.Fatalf(`chunker error: %s`, err)
 	}
 
+	saw_minsize := false
 	w := writerFunc(func(p []byte) (int, error) {
-		if len(p) < int(chunker.MinSize()) && err != io.EOF {
-			t.Fatalf(`chunker return a chunk below MinSize before last chunk: %s`, err)
+		if len(p) < int(chunker.MinSize()) {
+			if saw_minsize != false {
+				t.Fatalf(`chunker return a chunk below MinSize before last chunk: %s`, err)
+			} else {
+				saw_minsize = true
+			}
 		}
 		if len(p) > int(chunker.MaxSize()) {
 			t.Fatalf(`chunker return a chunk above MaxSize`)
@@ -114,9 +125,14 @@ func Test_FastCDC_Split(t *testing.T) {
 		t.Fatalf(`chunker error: %s`, err)
 	}
 
+	saw_minsize := false
 	w := func(offset, length uint, chunk []byte) error {
-		if len(chunk) < int(chunker.MinSize()) && err != io.EOF {
-			t.Fatalf(`chunker return a chunk below MinSize before last chunk: %s`, err)
+		if len(chunk) < int(chunker.MinSize()) {
+			if saw_minsize != false {
+				t.Fatalf(`chunker return a chunk below MinSize before last chunk: %s`, err)
+			} else {
+				saw_minsize = true
+			}
 		}
 		if len(chunk) > int(chunker.MaxSize()) {
 			t.Fatalf(`chunker return a chunk above MaxSize`)
@@ -236,6 +252,32 @@ func Test_UltraCDC_Split(t *testing.T) {
 	if !bytes.Equal(sum1, sum2) {
 		t.Fatalf(`chunker produces incorrect output`)
 	}
+}
+
+func Benchmark_Restic_Rabin_Next(b *testing.B) {
+	r := bytes.NewReader(rb)
+	b.SetBytes(int64(r.Len()))
+	b.ResetTimer()
+	nchunks := 0
+	buffer := make([]byte, restic.MaxSize)
+	for i := 0; i < b.N; i++ {
+		pol, err := restic.RandomPolynomial()
+		if err != nil {
+			b.Fatalf(`chunker error: %s`, err)
+		}
+		chunker := restic.New(r, pol)
+		chunker.MinSize = minSize
+		chunker.MaxSize = maxSize
+		if err != nil {
+			b.Fatalf(`chunker error: %s`, err)
+		}
+		for err := error(nil); err == nil; {
+			_, err = chunker.Next(buffer)
+			nchunks++
+		}
+		r.Reset(rb)
+	}
+	b.ReportMetric(float64(nchunks)/float64(b.N), "chunks")
 }
 
 func Benchmark_Askeladdk_FastCDC_Copy(b *testing.B) {
@@ -420,7 +462,7 @@ func Benchmark_PlakarLabs_UltraCDC_Copy(b *testing.B) {
 
 	opts := &chunkers.ChunkerOpts{
 		MinSize:    minSize,
-		NormalSize: avgSize,
+		NormalSize: minSize + (8 << 10),
 		MaxSize:    maxSize,
 	}
 
@@ -448,7 +490,7 @@ func Benchmark_PlakarLabs_UltraCDC_Split(b *testing.B) {
 
 	opts := &chunkers.ChunkerOpts{
 		MinSize:    minSize,
-		NormalSize: avgSize,
+		NormalSize: minSize + (8 << 10),
 		MaxSize:    maxSize,
 	}
 
@@ -477,7 +519,7 @@ func Benchmark_PlakarLabs_UltraCDC_Next(b *testing.B) {
 
 	opts := &chunkers.ChunkerOpts{
 		MinSize:    minSize,
-		NormalSize: avgSize,
+		NormalSize: minSize + (8 << 10),
 		MaxSize:    maxSize,
 	}
 

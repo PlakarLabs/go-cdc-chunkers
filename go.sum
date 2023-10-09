@@ -4,5 +4,7 @@ github.com/askeladdk/fastcdc v0.0.2 h1:7G55PritZUbjQhWgxHqKOgAdJxgzj26ksMvdzXKUr
 github.com/askeladdk/fastcdc v0.0.2/go.mod h1:ZhMhz8p8u5Hz5yP2NVNXPX8V2B9c840z6fW3VsIDQLw=
 github.com/jotfs/fastcdc-go v0.2.0 h1:WHYIGk3k9NumGWfp4YMsemEcx/s4JKpGAa6tpCpHJOo=
 github.com/jotfs/fastcdc-go v0.2.0/go.mod h1:PGFBIloiASFbiKnkCd/hmHXxngxYDYtisyurJ/zyDNM=
+github.com/restic/chunker v0.4.0 h1:YUPYCUn70MYP7VO4yllypp2SjmsRhRJaad3xKu1QFRw=
+github.com/restic/chunker v0.4.0/go.mod h1:z0cH2BejpW636LXw0R/BGyv+Ey8+m9QGiOanDHItzyw=
 github.com/tigerwill90/fastcdc v1.2.2 h1:tigEC8ONgsN9MreH27XU345jnuH8cF/Iw1EPkVr8JPk=
 github.com/tigerwill90/fastcdc v1.2.2/go.mod h1:gn9sPRoM0lazNdSkncX+QvvD/P7/wptXVLkVUEL/5Ck=

@@ -94,7 +94,7 @@ func NewChunker(algorithm string, reader io.Reader, opts *ChunkerOpts) (*Chunker
 
 func (chunker *Chunker) Next() ([]byte, error) {
 	if chunker.cutpoint != 0 {
-		// Discard is guaranteed to succeed, do not check error
+		// Discard is guaranteed to succeed here, do not check for error
 		chunker.rd.Discard(chunker.cutpoint)
 		chunker.cutpoint = 0
 	}
@@ -109,8 +109,14 @@ func (chunker *Chunker) Next() ([]byte, error) {
 		return nil, io.EOF
 	}
 
-	chunker.cutpoint = chunker.implementation.Algorithm(chunker.options, data[:n], n)
-	return data[:chunker.cutpoint], nil
+	cutpoint := chunker.implementation.Algorithm(chunker.options, data, n)
+	chunker.cutpoint = cutpoint
+
+	if cutpoint < chunker.minSize {
+		return data[:cutpoint], io.EOF
+	}
+
+	return data[:cutpoint], nil
 }
 
 func (chunker *Chunker) Copy(dst io.Writer) (int64, error) {
@@ -120,12 +126,14 @@ func (chunker *Chunker) Copy(dst io.Writer) (int64, error) {
 		if err != nil && err != io.EOF {
 			return nbytes, err
 		}
+
+		if len(chunk) != 0 {
+			if _, werr := dst.Write(chunk); werr != nil {
+				return nbytes, werr
+			}
+		}
 		if err == io.EOF {
 			break
-		}
-
-		if _, werr := dst.Write(chunk); werr != nil {
-			return nbytes, werr
 		}
 
 		nbytes += int64(len(chunk))
@@ -140,12 +148,15 @@ func (chunker *Chunker) Split(callback func(offset, length uint, chunk []byte) e
 		if err != nil && err != io.EOF {
 			return err
 		}
-		if err == io.EOF {
-			break
+
+		if len(chunk) != 0 {
+			if err = callback(offset, uint(len(chunk)), chunk); err != nil {
+				return err
+			}
 		}
 
-		if err = callback(offset, uint(len(chunk)), chunk); err != nil {
-			return err
+		if err == io.EOF {
+			break
 		}
 		offset += uint(len(chunk))
 	}
