@@ -32,7 +32,7 @@ func (fn writerFunc) Write(p []byte) (int, error) {
 
 var rb, _ = io.ReadAll(io.LimitReader(rand.New(rand.NewSource(0)), datalen))
 
-func Test_FastCDC(t *testing.T) {
+func Test_FastCDC_Next(t *testing.T) {
 	r := bytes.NewReader(rb)
 
 	hasher := sha256.New()
@@ -60,6 +60,73 @@ func Test_FastCDC(t *testing.T) {
 		if err == io.EOF {
 			break
 		}
+	}
+	sum2 := hasher.Sum(nil)
+
+	if !bytes.Equal(sum1, sum2) {
+		t.Fatalf(`chunker produces incorrect output`)
+	}
+}
+
+func Test_FastCDC_Copy(t *testing.T) {
+	r := bytes.NewReader(rb)
+
+	hasher := sha256.New()
+	hasher.Write(rb)
+	sum1 := hasher.Sum(nil)
+
+	hasher.Reset()
+
+	chunker, err := chunkers.NewChunker("fastcdc", r, nil)
+	if err != nil {
+		t.Fatalf(`chunker error: %s`, err)
+	}
+
+	w := writerFunc(func(p []byte) (int, error) {
+		if len(p) < int(chunker.MinSize()) && err != io.EOF {
+			t.Fatalf(`chunker return a chunk below MinSize before last chunk: %s`, err)
+		}
+		if len(p) > int(chunker.MaxSize()) {
+			t.Fatalf(`chunker return a chunk above MaxSize`)
+		}
+		hasher.Write(p)
+		return len(p), nil
+	})
+	chunker.Copy(w)
+	sum2 := hasher.Sum(nil)
+
+	if !bytes.Equal(sum1, sum2) {
+		t.Fatalf(`chunker produces incorrect output`)
+	}
+}
+
+func Test_FastCDC_Split(t *testing.T) {
+	r := bytes.NewReader(rb)
+
+	hasher := sha256.New()
+	hasher.Write(rb)
+	sum1 := hasher.Sum(nil)
+
+	hasher.Reset()
+
+	chunker, err := chunkers.NewChunker("fastcdc", r, nil)
+	if err != nil {
+		t.Fatalf(`chunker error: %s`, err)
+	}
+
+	w := func(offset, length uint, chunk []byte) error {
+		if len(chunk) < int(chunker.MinSize()) && err != io.EOF {
+			t.Fatalf(`chunker return a chunk below MinSize before last chunk: %s`, err)
+		}
+		if len(chunk) > int(chunker.MaxSize()) {
+			t.Fatalf(`chunker return a chunk above MaxSize`)
+		}
+		hasher.Write(chunk)
+		return nil
+	}
+	err = chunker.Split(w)
+	if err != nil {
+		t.Fatalf(`chunker error: %s`, err)
 	}
 	sum2 := hasher.Sum(nil)
 
@@ -96,6 +163,73 @@ func Test_UltraCDC(t *testing.T) {
 		if err == io.EOF {
 			break
 		}
+	}
+	sum2 := hasher.Sum(nil)
+
+	if !bytes.Equal(sum1, sum2) {
+		t.Fatalf(`chunker produces incorrect output`)
+	}
+}
+
+func Test_UltraCDC_Copy(t *testing.T) {
+	r := bytes.NewReader(rb)
+
+	hasher := sha256.New()
+	hasher.Write(rb)
+	sum1 := hasher.Sum(nil)
+
+	hasher.Reset()
+
+	chunker, err := chunkers.NewChunker("ultracdc", r, nil)
+	if err != nil {
+		t.Fatalf(`chunker error: %s`, err)
+	}
+
+	w := writerFunc(func(p []byte) (int, error) {
+		if len(p) < int(chunker.MinSize()) && err != io.EOF {
+			t.Fatalf(`chunker return a chunk below MinSize before last chunk: %s`, err)
+		}
+		if len(p) > int(chunker.MaxSize()) {
+			t.Fatalf(`chunker return a chunk above MaxSize`)
+		}
+		hasher.Write(p)
+		return len(p), nil
+	})
+	chunker.Copy(w)
+	sum2 := hasher.Sum(nil)
+
+	if !bytes.Equal(sum1, sum2) {
+		t.Fatalf(`chunker produces incorrect output`)
+	}
+}
+
+func Test_UltraCDC_Split(t *testing.T) {
+	r := bytes.NewReader(rb)
+
+	hasher := sha256.New()
+	hasher.Write(rb)
+	sum1 := hasher.Sum(nil)
+
+	hasher.Reset()
+
+	chunker, err := chunkers.NewChunker("ultracdc", r, nil)
+	if err != nil {
+		t.Fatalf(`chunker error: %s`, err)
+	}
+
+	w := func(offset, length uint, chunk []byte) error {
+		if len(chunk) < int(chunker.MinSize()) && err != io.EOF {
+			t.Fatalf(`chunker return a chunk below MinSize before last chunk: %s`, err)
+		}
+		if len(chunk) > int(chunker.MaxSize()) {
+			t.Fatalf(`chunker return a chunk above MaxSize`)
+		}
+		hasher.Write(chunk)
+		return nil
+	}
+	err = chunker.Split(w)
+	if err != nil {
+		t.Fatalf(`chunker error: %s`, err)
 	}
 	sum2 := hasher.Sum(nil)
 
