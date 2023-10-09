@@ -39,6 +39,8 @@ type Chunker struct {
 	options        *ChunkerOpts
 	implementation ChunkerImplementation
 
+	cutpoint int
+
 	maxSize    int
 	minSize    int
 	normalSize int
@@ -91,8 +93,14 @@ func NewChunker(algorithm string, reader io.Reader, opts *ChunkerOpts) (*Chunker
 }
 
 func (chunker *Chunker) Next() ([]byte, error) {
+	if chunker.cutpoint != 0 {
+		// Discard is guaranteed to succeed, do not check error
+		chunker.rd.Discard(chunker.cutpoint)
+		chunker.cutpoint = 0
+	}
+
 	data, err := chunker.rd.Peek(chunker.maxSize)
-	if err != nil && err != io.EOF && err != bufio.ErrBufferFull {
+	if err != nil && err != io.EOF {
 		return nil, err
 	}
 
@@ -101,12 +109,8 @@ func (chunker *Chunker) Next() ([]byte, error) {
 		return nil, io.EOF
 	}
 
-	cutpoint := chunker.implementation.Algorithm(chunker.options, data[:n], n)
-	if _, err = chunker.rd.Discard(int(cutpoint)); err != nil {
-		return nil, err
-	}
-
-	return data[:cutpoint], nil
+	chunker.cutpoint = chunker.implementation.Algorithm(chunker.options, data[:n], n)
+	return data[:chunker.cutpoint], nil
 }
 
 func (chunker *Chunker) Copy(dst io.Writer) (int64, error) {
