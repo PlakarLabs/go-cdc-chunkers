@@ -61,8 +61,19 @@ finding the proper balance in usability, CPU-usage and memory-usage.
 goos: darwin
 goarch: arm64
 pkg: github.com/PlakarLabs/go-cdc-chunkers/tests
-Benchmark_FastCDC-8           15          75999261 ns/op        1766.04 MB/s         14327 chunks         131256 B/op          4 allocs/op
-Benchmark_UltraCDC-8          12          88462517 ns/op        1517.23 MB/s          3945 chunks         131256 B/op          4 allocs/op
+Benchmark_Restic_Rabin_Next-8                          1        1926270208 ns/op         557.42 MB/s          1286 chunks        8922128 B/op         11 allocs/op
+Benchmark_Askeladdk_FastCDC_Copy-8                     2         686870770 ns/op        1563.24 MB/s        105327 chunks        1048592 B/op          1 allocs/op
+Benchmark_Jotfs_FastCDC_Next-8                         3         473524972 ns/op        2267.55 MB/s          1725 chunks        2097264 B/op          2 allocs/op
+Benchmark_Tigerwill90_FastCDC_Split-8                  3         395610639 ns/op        2714.14 MB/s          2013 chunks        2097328 B/op          3 allocs/op
+Benchmark_Mhofmann_FastCDC_Next-8                      2         592342938 ns/op        1812.70 MB/s          1718 chunks        1048688 B/op          2 allocs/op
+Benchmark_PlakarLabs_FastCDC_Copy-8                    9         155380773 ns/op        6910.39 MB/s          3647 chunks        2097318 B/op          3 allocs/op
+Benchmark_PlakarLabs_FastCDC_Split-8                   9         120039241 ns/op        8944.92 MB/s          3647 chunks        2097314 B/op          3 allocs/op
+Benchmark_PlakarLabs_FastCDC_Next-8                    9         138454935 ns/op        7755.17 MB/s          3647 chunks        2097314 B/op          3 allocs/op
+Benchmark_PlakarLabs_UltraCDC_Copy-8                  20          52055098 ns/op        20627.03 MB/s         4096 chunks        2097314 B/op          3 allocs/op
+Benchmark_PlakarLabs_UltraCDC_Split-8                 24          48617734 ns/op        22085.39 MB/s         4096 chunks        2097313 B/op          3 allocs/op
+Benchmark_PlakarLabs_UltraCDC_Next-8                  24          48486024 ns/op        22145.39 MB/s         4096 chunks        2097312 B/op          3 allocs/op
+PASS
+ok      github.com/PlakarLabs/go-cdc-chunkers/tests     28.622s
 ```
 
 ## Contributing
