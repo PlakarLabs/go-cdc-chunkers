@@ -92,7 +92,7 @@ func Test_FastCDC_Copy(t *testing.T) {
 	w := writerFunc(func(p []byte) (int, error) {
 		if len(p) < int(chunker.MinSize()) {
 			if saw_minsize != false {
-				t.Fatalf(`chunker return a chunk below MinSize before last chunk: %s`, err)
+				t.Fatalf(`chunker return a chunk below MinSize before last chunk: %d < %d`, len(p), int(chunker.MinSize()))
 			} else {
 				saw_minsize = true
 			}
@@ -129,7 +129,7 @@ func Test_FastCDC_Split(t *testing.T) {
 	w := func(offset, length uint, chunk []byte) error {
 		if len(chunk) < int(chunker.MinSize()) {
 			if saw_minsize != false {
-				t.Fatalf(`chunker return a chunk below MinSize before last chunk: %s`, err)
+				t.Fatalf(`chunker return a chunk below MinSize before last chunk: %d < %d`, len(chunk), int(chunker.MinSize()))
 			} else {
 				saw_minsize = true
 			}
@@ -201,9 +201,14 @@ func Test_UltraCDC_Copy(t *testing.T) {
 		t.Fatalf(`chunker error: %s`, err)
 	}
 
+	saw_minsize := false
 	w := writerFunc(func(p []byte) (int, error) {
-		if len(p) < int(chunker.MinSize()) && err != io.EOF {
-			t.Fatalf(`chunker return a chunk below MinSize before last chunk: %s`, err)
+		if len(p) < int(chunker.MinSize()) {
+			if saw_minsize != false {
+				t.Fatalf(`chunker return a chunk below MinSize before last chunk: %d < %d`, len(p), int(chunker.MinSize()))
+			} else {
+				saw_minsize = true
+			}
 		}
 		if len(p) > int(chunker.MaxSize()) {
 			t.Fatalf(`chunker return a chunk above MaxSize`)
@@ -233,9 +238,14 @@ func Test_UltraCDC_Split(t *testing.T) {
 		t.Fatalf(`chunker error: %s`, err)
 	}
 
+	saw_minsize := false
 	w := func(offset, length uint, chunk []byte) error {
-		if len(chunk) < int(chunker.MinSize()) && err != io.EOF {
-			t.Fatalf(`chunker return a chunk below MinSize before last chunk: %s`, err)
+		if len(chunk) < int(chunker.MinSize()) {
+			if saw_minsize != false {
+				t.Fatalf(`chunker return a chunk below MinSize before last chunk: %d < %d`, len(chunk), int(chunker.MinSize()))
+			} else {
+				saw_minsize = true
+			}
 		}
 		if len(chunk) > int(chunker.MaxSize()) {
 			t.Fatalf(`chunker return a chunk above MaxSize`)

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"math/rand"
@@ -49,6 +50,9 @@ func main() {
 		if len(chunk) > int(chunker.MaxSize()) {
 			log.Fatalf(`chunker return a chunk above MaxSize`)
 		}
+
+		fmt.Println("chunk size:", len(chunk))
+
 		if err == io.EOF {
 			break
 		}

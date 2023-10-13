@@ -107,7 +107,7 @@ func (c *UltraCDC) Algorithm(options *chunkers.ChunkerOpts, data []byte, n int) 
 			}
 			inByte := *(*byte)(unsafe.Pointer(uintptr(unsafe.Pointer(inBufWin)) + uintptr(j)))
 			outByte := *(*byte)(unsafe.Pointer(uintptr(unsafe.Pointer(outBufWin)) + uintptr(j)))
-			dist = dist + uint64(ultraCDC_hammingDistanceTable[outByte][inByte])
+			dist = dist + uint64(hammingDistanceTable[outByte][inByte])
 		}
 		outBufWin = inBufWin
 		i += 8
