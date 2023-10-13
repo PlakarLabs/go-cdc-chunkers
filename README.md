@@ -57,6 +57,10 @@ Here's a basic example of how to use the package:
 Performances is a key feature in CDC, `go-cdc-chunkers` strives at optimizing its implementation of CDC algorithms,
 finding the proper balance in usability, CPU-usage and memory-usage.
 
+The following benchmark shows the performances of chunking 1GB of random data,
+with a minimum chunk size of 256KB and a maximum chunk size of 1MB,
+for multiple implementations available as well as multiple methods of consumption of the chunks:
+
 ```
 goos: darwin
 goarch: arm64
