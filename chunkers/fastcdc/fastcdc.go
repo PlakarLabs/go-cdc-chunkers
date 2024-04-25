@@ -82,7 +82,7 @@ func (c *FastCDC) Algorithm(options *chunkers.ChunkerOpts, data []byte, n int) i
 	i := MinSize
 	mask := MaskS
 
-	p := unsafe.Pointer(&data[0])
+	p := unsafe.Pointer(&data[i])
 	for ; i < n; i++ {
 		if i == NormalSize {
 			mask = MaskL
