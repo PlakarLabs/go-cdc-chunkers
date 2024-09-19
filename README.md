@@ -74,12 +74,12 @@ Benchmark_Mhofmann_FastCDC_Next-8                      2         516671625 ns/op
 Benchmark_PlakarLabs_FastCDC_Copy-8                    8         138843406 ns/op        7733.47 MB/s          3647 chunks
 Benchmark_PlakarLabs_FastCDC_Split-8                   8         131869604 ns/op        8142.45 MB/s          3647 chunks
 Benchmark_PlakarLabs_FastCDC_Next-8                    8         131754844 ns/op        8149.54 MB/s          3647 chunks
-Benchmark_PlakarLabs_JC_Copy-8                        14          79943033 ns/op        13431.34 MB/s         4033 chunks
-Benchmark_PlakarLabs_JC_Split-8                       14          78178872 ns/op        13734.42 MB/s         4033 chunks
-Benchmark_PlakarLabs_JC_Next-8                        14          78148342 ns/op        13739.79 MB/s         4033 chunks
 Benchmark_PlakarLabs_UltraCDC_Copy-8                  15          75377942 ns/op        14244.78 MB/s         4096 chunks
 Benchmark_PlakarLabs_UltraCDC_Split-8                 15          79355653 ns/op        13530.75 MB/s         4096 chunks
 Benchmark_PlakarLabs_UltraCDC_Next-8                  15          74150153 ns/op        14480.64 MB/s         4096 chunks
+Benchmark_PlakarLabs_JC_Copy-8                        14          79943033 ns/op        13431.34 MB/s         4033 chunks
+Benchmark_PlakarLabs_JC_Split-8                       14          78178872 ns/op        13734.42 MB/s         4033 chunks
+Benchmark_PlakarLabs_JC_Next-8                        14          78148342 ns/op        13739.79 MB/s         4033 chunks
 PASS
 ok      github.com/PlakarLabs/go-cdc-chunkers/tests     75.089s
 ```
@@ -100,5 +100,6 @@ This project is licensed under the ISC License. See the [LICENSE.md](LICENSE.md)
 ## Reference
 
   - [Xia, Wen, et al. "Fastcdc: a fast and efficient content-defined chunking approach for data deduplication." 2016 USENIX Annual Technical Conference](https://www.usenix.org/system/files/conference/atc16/atc16-paper-xia.pdf)
-  - [Xiaozhong Jin, Haikun Liu, Chencheng Ye, Xiaofei Liao, Hai Jin and Yu Zhang "Accelerating Content-Defined Chunking for Data Deduplication Based on Speculative Jump" IEEE TRANSACTIONS ON PARALLEL AND DISTRIBUTED SYSTEMS, VOL. 34, NO. 9, SEPTEMBER 2023](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10168293)
   - [Zhou, Wang, Xia, Zhang "UltraCDC:A Fast and Stable Content-Defined Chunking Algorithm for Deduplication-based Backup Storage Systems" 2022 IEEE](https://ieeexplore.ieee.org/document/9894295)
+  - [Xiaozhong Jin, Haikun Liu, Chencheng Ye, Xiaofei Liao, Hai Jin and Yu Zhang "Accelerating Content-Defined Chunking for Data Deduplication Based on Speculative Jump" IEEE TRANSACTIONS ON PARALLEL AND DISTRIBUTED SYSTEMS, VOL. 34, NO. 9, SEPTEMBER 2023](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10168293)
+  

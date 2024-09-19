@@ -578,91 +578,6 @@ func Benchmark_PlakarLabs_FastCDC_Next(b *testing.B) {
 	b.ReportMetric(float64(nchunks)/float64(b.N), "chunks")
 }
 
-func Benchmark_PlakarLabs_JC_Copy(b *testing.B) {
-	r := bytes.NewReader(rb)
-	b.SetBytes(int64(r.Len()))
-	b.ResetTimer()
-	nchunks := 0
-
-	opts := &chunkers.ChunkerOpts{
-		MinSize:    minSize,
-		NormalSize: avgSize,
-		MaxSize:    maxSize,
-	}
-
-	w := writerFunc(func(p []byte) (int, error) {
-		nchunks++
-		return len(p), nil
-	})
-
-	for i := 0; i < b.N; i++ {
-		chunker, err := chunkers.NewChunker("jc", r, opts)
-		if err != nil {
-			b.Fatalf(`chunker error: %s`, err)
-		}
-		chunker.Copy(w)
-		r.Reset(rb)
-	}
-	b.ReportMetric(float64(nchunks)/float64(b.N), "chunks")
-}
-
-func Benchmark_PlakarLabs_JC_Split(b *testing.B) {
-	r := bytes.NewReader(rb)
-	b.SetBytes(int64(r.Len()))
-	b.ResetTimer()
-	nchunks := 0
-
-	opts := &chunkers.ChunkerOpts{
-		MinSize:    minSize,
-		NormalSize: avgSize,
-		MaxSize:    maxSize,
-	}
-
-	w := func(offset, length uint, chunk []byte) error {
-		nchunks++
-		return nil
-	}
-
-	for i := 0; i < b.N; i++ {
-		chunker, err := chunkers.NewChunker("jc", r, opts)
-		if err != nil {
-			b.Fatalf(`chunker error: %s`, err)
-		}
-		err = chunker.Split(w)
-		if err != nil && err != io.EOF {
-			b.Fatalf(`chunker error: %s`, err)
-		}
-		r.Reset(rb)
-	}
-	b.ReportMetric(float64(nchunks)/float64(b.N), "chunks")
-}
-
-func Benchmark_PlakarLabs_JC_Next(b *testing.B) {
-	r := bytes.NewReader(rb)
-	b.SetBytes(int64(r.Len()))
-	b.ResetTimer()
-	nchunks := 0
-
-	opts := &chunkers.ChunkerOpts{
-		MinSize:    minSize,
-		NormalSize: avgSize,
-		MaxSize:    maxSize,
-	}
-
-	for i := 0; i < b.N; i++ {
-		chunker, err := chunkers.NewChunker("jc", r, opts)
-		if err != nil {
-			b.Fatalf(`chunker error: %s`, err)
-		}
-		for err := error(nil); err == nil; {
-			_, err = chunker.Next()
-			nchunks++
-		}
-		r.Reset(rb)
-	}
-	b.ReportMetric(float64(nchunks)/float64(b.N), "chunks")
-}
-
 func Benchmark_PlakarLabs_UltraCDC_Copy(b *testing.B) {
 	r := bytes.NewReader(rb)
 	b.SetBytes(int64(r.Len()))
@@ -736,6 +651,91 @@ func Benchmark_PlakarLabs_UltraCDC_Next(b *testing.B) {
 	nchunks := 0
 	for i := 0; i < b.N; i++ {
 		chunker, err := chunkers.NewChunker("ultracdc", r, opts)
+		if err != nil {
+			b.Fatalf(`chunker error: %s`, err)
+		}
+		for err := error(nil); err == nil; {
+			_, err = chunker.Next()
+			nchunks++
+		}
+		r.Reset(rb)
+	}
+	b.ReportMetric(float64(nchunks)/float64(b.N), "chunks")
+}
+
+func Benchmark_PlakarLabs_JC_Copy(b *testing.B) {
+	r := bytes.NewReader(rb)
+	b.SetBytes(int64(r.Len()))
+	b.ResetTimer()
+	nchunks := 0
+
+	opts := &chunkers.ChunkerOpts{
+		MinSize:    minSize,
+		NormalSize: avgSize,
+		MaxSize:    maxSize,
+	}
+
+	w := writerFunc(func(p []byte) (int, error) {
+		nchunks++
+		return len(p), nil
+	})
+
+	for i := 0; i < b.N; i++ {
+		chunker, err := chunkers.NewChunker("jc", r, opts)
+		if err != nil {
+			b.Fatalf(`chunker error: %s`, err)
+		}
+		chunker.Copy(w)
+		r.Reset(rb)
+	}
+	b.ReportMetric(float64(nchunks)/float64(b.N), "chunks")
+}
+
+func Benchmark_PlakarLabs_JC_Split(b *testing.B) {
+	r := bytes.NewReader(rb)
+	b.SetBytes(int64(r.Len()))
+	b.ResetTimer()
+	nchunks := 0
+
+	opts := &chunkers.ChunkerOpts{
+		MinSize:    minSize,
+		NormalSize: avgSize,
+		MaxSize:    maxSize,
+	}
+
+	w := func(offset, length uint, chunk []byte) error {
+		nchunks++
+		return nil
+	}
+
+	for i := 0; i < b.N; i++ {
+		chunker, err := chunkers.NewChunker("jc", r, opts)
+		if err != nil {
+			b.Fatalf(`chunker error: %s`, err)
+		}
+		err = chunker.Split(w)
+		if err != nil && err != io.EOF {
+			b.Fatalf(`chunker error: %s`, err)
+		}
+		r.Reset(rb)
+	}
+	b.ReportMetric(float64(nchunks)/float64(b.N), "chunks")
+}
+
+func Benchmark_PlakarLabs_JC_Next(b *testing.B) {
+	r := bytes.NewReader(rb)
+	b.SetBytes(int64(r.Len()))
+	b.ResetTimer()
+	nchunks := 0
+
+	opts := &chunkers.ChunkerOpts{
+		MinSize:    minSize,
+		NormalSize: avgSize,
+		MaxSize:    maxSize,
+	}
+
+	for i := 0; i < b.N; i++ {
+		chunker, err := chunkers.NewChunker("jc", r, opts)
 		if err != nil {
 			b.Fatalf(`chunker error: %s`, err)
 		}
