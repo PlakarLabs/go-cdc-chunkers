@@ -100,4 +100,5 @@ This project is licensed under the ISC License. See the [LICENSE.md](LICENSE.md)
 ## Reference
 
   - [Xia, Wen, et al. "Fastcdc: a fast and efficient content-defined chunking approach for data deduplication." 2016 USENIX Annual Technical Conference](https://www.usenix.org/system/files/conference/atc16/atc16-paper-xia.pdf)
+  - [Xiaozhong Jin, Haikun Liu, Chencheng Ye, Xiaofei Liao, Hai Jin and Yu Zhang "Accelerating Content-Defined Chunking for Data Deduplication Based on Speculative Jump" IEEE TRANSACTIONS ON PARALLEL AND DISTRIBUTED SYSTEMS, VOL. 34, NO. 9, SEPTEMBER 2023](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10168293)
   - [Zhou, Wang, Xia, Zhang "UltraCDC:A Fast and Stable Content-Defined Chunking Algorithm for Deduplication-based Backup Storage Systems" 2022 IEEE](https://ieeexplore.ieee.org/document/9894295)
