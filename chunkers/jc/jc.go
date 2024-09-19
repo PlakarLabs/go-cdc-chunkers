@@ -18,6 +18,7 @@ package jc
 
 import (
 	"errors"
+	"math"
 	"unsafe"
 
 	chunkers "github.com/PlakarLabs/go-cdc-chunkers"
@@ -32,6 +33,8 @@ var errMinSize = errors.New("MinSize is required and must be 64B <= MinSize <= 1
 var errMaxSize = errors.New("MaxSize is required and must be 64B <= MaxSize <= 1GB && MaxSize > NormalSize")
 
 type JC struct {
+	computeJumpLength bool
+	jumpLength        int
 }
 
 func newJC() chunkers.ChunkerImplementation {
@@ -65,9 +68,8 @@ func (c *JC) Algorithm(options *chunkers.ChunkerOpts, data []byte, n int) int {
 	NormalSize := options.NormalSize
 
 	const (
-		MaskC      = uint64(0x590003570000)
-		MaskJ      = uint64(0x590003560000)
-		JumpLength = 42
+		MaskC = uint64(0x590003570000)
+		MaskJ = uint64(0x590003560000)
 	)
 
 	switch {
@@ -82,6 +84,12 @@ func (c *JC) Algorithm(options *chunkers.ChunkerOpts, data []byte, n int) int {
 	fp := uint64(0)
 	i := MinSize
 
+	if c.computeJumpLength {
+		cOnes := int(math.Log2(float64(NormalSize))) - 1
+		jOnes := cOnes - 1
+		c.jumpLength = ((1 << jOnes) * cOnes) / ((1 << cOnes) - (1 << jOnes))
+	}
+
 	var p unsafe.Pointer
 	for ; i < n; i++ {
 		p = unsafe.Pointer(&data[i])
@@ -91,7 +99,7 @@ func (c *JC) Algorithm(options *chunkers.ChunkerOpts, data []byte, n int) int {
 				return i
 			}
 			fp = 0
-			i = i + JumpLength
+			i = i + c.jumpLength
 		}
 		i++
 	}
