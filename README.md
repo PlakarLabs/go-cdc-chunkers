@@ -3,7 +3,7 @@
 ## WARNING:
 This is a work in progress.
 
-Feel free to join [my discord server](https://discord.com/invite/YC6j4rbvSk) or start discussions at Github.
+Feel free to join [our discord server](https://discord.gg/uuegtnF2Q5) or start discussions at Github.
 
 
 ## Overview
