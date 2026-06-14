@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/banner.png" alt="go-cdc-chunkers — Content-Defined Chunking for Go" width="100%">
+</p>
+
 # go-cdc-chunkers
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/PlakarKorp/go-cdc-chunkers.svg)](https://pkg.go.dev/github.com/PlakarKorp/go-cdc-chunkers)
