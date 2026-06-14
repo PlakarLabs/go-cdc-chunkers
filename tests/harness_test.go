@@ -42,8 +42,11 @@ var allAlgorithms = []algoParams{
 	{name: "kfastcdc", keyed: true},
 	{name: "jc"},
 	{name: "jc-v1.0.0"},
+	{name: "jc-v1.1.0"},
 	{name: "ultracdc"},
+	{name: "ultracdc-v1.0.0"},
 	{name: "fastcdc4stadia"},
+	{name: "fixed-v1.0.0"},
 }
 
 // fixedKey is a deterministic 32 byte key, so keyed runs are reproducible.

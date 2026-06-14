@@ -68,3 +68,11 @@ jobs:
     - name: Fail if tests failed
       if: ${{ steps.gotest.outputs.test_exit != '0' }}
       run: exit 1
+
+    # Bounded fuzzing of the chunker invariants (reconstruction, size contract,
+    # buffer-boundary determinism). The seed corpus already runs in the test
+    # step above; this gives the mutator a short window to find new inputs on
+    # every PR without lengthening CI noticeably. Any crasher is written to
+    # testdata/fuzz and fails the job.
+    - name: Fuzz chunkers
+      run: go test ./tests/ -run '^$' -fuzz '^FuzzChunker$' -fuzztime 30s
