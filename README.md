@@ -41,7 +41,7 @@ go get github.com/PlakarKorp/go-cdc-chunkers
 Here's a basic example of how to use the package:
 
 ```go
-    chunker, err := chunkers.NewChunker("fastcdc", rd)   // or ultracdc
+    chunker, err := chunkers.NewChunker("fastcdc", rd, nil)   // or ultracdc
     if err != nil {
         log.Fatal(err)
     }
