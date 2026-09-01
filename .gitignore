@@ -5,3 +5,6 @@
 
 # Local copies of reference papers (not redistributed)
 /papers/
+
+# Jetbrains
+/.idea
